@@ -3,6 +3,8 @@
 #include "die.h"
 #include "roll.h"
 #include "shooter.h"
+#include "come_out_phase.h"
+#include "point_phase.h"
 
 TEST_CASE("Verify Test Configuration", "verification") {
 	REQUIRE(true == true);
@@ -39,4 +41,58 @@ TEST_CASE("Shooter returns a Roll and verify that the roll result has one of the
 		REQUIRE(value >= 2);
 		REQUIRE(value <= 12);
 	}
+}
+
+TEST_CASE("ComeOutPhase get outcomes returns values RollOutcome::natural, RollOutcome::craps, and RollOutcome::point") {
+	ComeOutPhase come_out_phase;
+	Die die1;
+	Die die2;
+	Roll roll(die1, die2);
+	
+	// Loop until we get all outcomes
+	bool natural = false;
+	bool craps = false;
+	bool point = false;
+
+	int max_rolls = 1000;
+	for (int i = 0; i < max_rolls; ++i) {
+		roll.roll_dice();
+		RollOutcome outcome = come_out_phase.get_outcome(&roll);
+		if (outcome == RollOutcome::natural) natural = true;
+		if (outcome == RollOutcome::craps) craps = true;
+		if (outcome == RollOutcome::point) point = true;
+		
+		if (natural && craps && point) break;
+	}
+	
+	REQUIRE(natural);
+	REQUIRE(craps);
+	REQUIRE(point);
+}
+
+TEST_CASE("PointPhase get outcomes returns values RollOutcome::point, RollOutcome::seven_out, and RollOutcome::nopoint") {
+	PointPhase point_phase(4); // Set point to 4
+	Die die1;
+	Die die2;
+	Roll roll(die1, die2);
+	
+	// Loop until we get all outcomes
+	bool point_match = false;
+	bool seven_out = false;
+	bool nopoint = false;
+
+	int max_rolls = 1000;
+	for (int i = 0; i < max_rolls; ++i) {
+		roll.roll_dice();
+		RollOutcome outcome = point_phase.get_outcome(&roll);
+		if (outcome == RollOutcome::point) point_match = true;
+		if (outcome == RollOutcome::seven_out) seven_out = true;
+		if (outcome == RollOutcome::nopoint) nopoint = true;
+		
+		if (point_match && seven_out && nopoint) break;
+	}
+	
+	REQUIRE(point_match);
+	REQUIRE(seven_out);
+	REQUIRE(nopoint);
 }
